@@ -1,8 +1,8 @@
 <?php
-namespace DB;
-include('../Models/Model.php');
+namespace vendor\DataBase;
+include_once( __DIR__."\Models\model.php");
 
-use Model\Sales;
+use vendor\Model\Sales as Sale;
 
 class DB
 {
@@ -11,6 +11,7 @@ class DB
     private $username = "root";
     private $password = "root";
     private $dbName = "testprog";
+
     public function Get()
     {
 
@@ -27,13 +28,35 @@ class DB
 
         /* Выборка результатов запроса */
         while ($row = mysqli_fetch_row($result)) {
-            $sales = new Sales(intval($row[0]), $row[1], $row[2], $row[3]);
+            $sales = new Sale();
+            $sales->sConstruct(intval($row[0]), $row[1], $row[2], $row[3]);
             array_push($list, $sales);
         }
         /* Освобождаем используемую память */
         mysqli_free_result($result);
         return $list;
     }
+    public function GetOrderByDate($min,$max){
+        $list = array();
+        /* создать соединение */
+        $mysqli = mysqli_connect($this->hostname, $this->username, $this->password, $this->dbName) or die("Не могу создать соединение ");
+
+        /* выбрать базу данных. Если произойдет ошибка - вывести ее */
+        // mysqli_select_db($dbName) or die(mysql_error());  
+
+        /* Выполнить запрос. Если произойдет ошибка - вывести ее. */
+        // $result = mysql_query( 'SELECT * FROM SALES ORDER BY Area DESC LIMIT 5') or die(mysql_error()); 
+        $result = mysqli_query($mysqli, "SELECT Period, SUM(sum) AS summa FROM sales WHERE(sales.Period >= '$min' AND sales.Period <='$max') GROUP BY Period") or die(mysqli_error());
+        $i=0;
+        /* Выборка результатов запроса */
+        while ($row = mysqli_fetch_row($result)) {
+            $sales = new Sale();
+            $sales->sСonstructDate($i,$row[0],$row[1]);
+            array_push($list, $sales);
+            $i++;
+        }
+        /* Освобождаем используемую память */
+        mysqli_free_result($result);
+        return $list;
+    }
 }
-
-
